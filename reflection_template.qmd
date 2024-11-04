@@ -1,6 +1,6 @@
 ---
 title: "STAT 331 Portfolio"
-author: "Your Name Goes Here"
+author: "Isabel Pfeiffer"
 format: 
   html: 
     self-contained: true
@@ -11,7 +11,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an __.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be a B.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -23,20 +23,34 @@ execute:
 
 ```{r}
 #| label: wd-1-csv
-
+From Lab 2, Question 1:
+  
+  library(here)
+surveys <- read_csv(here("data", "surveys.csv"))
 ```
 
 -   `xlsx`
 
 ```{r}
 #| label: wd-1-xlsx
-
+From PA4 Question1:
+  
+military <- read_xlsx(here::here("data", 
+                                 "gov_spending_per_capita.xlsx"), 
+                      sheet = "Share of Govt. spending", 
+                      skip  = 7, 
+                      n_max = 191)
 ```
 
 -   `txt`
 
 ```{r}
 #| label: wd-1-txt
+From Check in 2.3:
+
+  ages_mystery <- read_delim(
+    file = here::here("Week 2", "Check-ins", "Ages_Data", "ages_mystery.txt"), 
+    delim = "|")
 
 ```
 
@@ -44,7 +58,23 @@ execute:
 
 ```{r}
 #| label: wd-2
-
+From Lab 3 Question 5:
+  
+teacher_evals_clean <- teacher_evals |>
+  rename(sex = gender) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority,
+         sex) |>
+  mutate(teacher_id = as.character(teacher_id),
+         course_id = as.character(course_id)) |>
+  filter(no_participants >= 10)
 ```
 
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -53,28 +83,64 @@ execute:
 
 ```{r}
 #| label: wd-3-numeric
-
+From Lab 3 Question 5:
+  
+teacher_evals_clean <- teacher_evals |>
+  rename(sex = gender) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority,
+         sex) |>
+  mutate(teacher_id = as.character(teacher_id),
+         course_id = as.character(course_id)) |>
+  filter(no_participants >= 10)
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
 ```{r}
 #| label: wd-3-string
+From Lab 4 Question 2:
+  
+ca_childcare <- childcare_costs |>
+  inner_join(
+    counties |>
+      filter(str_detect(state_abbreviation, "CA$")), 
+    by = "county_fips_code"
+  )
 
 ```
+
+**Revision: Above code modified to include str_detect to specifically use stringr package**
 
 -   factor
 
 ```{r}
 #| label: wd-3-factor
+From Lab 4 Question 4:
 
+income_summary <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year, values_from = median_income) |>
+  rename("2008" = `2008`, "2018" = `2018`) |>
+  arrange(desc(`2018`))
+# https://stackoverflow.com/questions/59395684/writing-a-median-function-in-r
+income_summary
 ```
 
 -   date (example must use functions from **lubridate**)
 
 ```{r}
 #| label: wd-3-date
-
+*waiting*
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -83,14 +149,55 @@ execute:
 
 ```{r}
 #| label: wd-4-numeric
-
+From Lab 4 Question 6:
+  
+plot_data <- ca_childcare |>
+  filter(study_year >= 2008 & study_year <= 2018) |> 
+  select(region, study_year, mc_infant, mc_toddler, mc_preschool) |>
+  pivot_longer(
+    cols = c(mc_infant, mc_toddler, mc_preschool),
+    names_to = "age_group",
+    values_to = "median_price"
+  ) |>
+  mutate(
+    age_group = recode(age_group,
+                       mc_infant = "Infant",
+                       mc_toddler = "Toddler",
+                       mc_preschool = "Preschool"),
+    study_year = as.numeric(study_year),
+    median_price = as.numeric(median_price)
+  ) |>
+  filter(!is.na(study_year) & !is.na(median_price))
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
 ```{r}
 #| label: wd-4-string
-
+From Lab 4 Question 3:
+  
+library(forcats)
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |> 
+  mutate(region = fct_collapse(county_name,
+    `San Francisco Bay Area` = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+    `Central Coast` = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+    `Orange County` = c("Orange"),
+    `North Coast` = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+    `Superior California` = c("Sierra", "Butte", "Colusa", "Glenn", "Nevada", "Placer", "Sacramento", "Sutter", "Yolo", "Yuba", "Lassen", "Modoc", "Plumas", "Shasta", "Siskiyou", "Tehama", "El Dorado"),
+    `Inland Empire` = c("Riverside", "San Bernardino"),
+    `Southern San Joaquin Valley` = c("Inyo", "Kern", "Tulare", "Kings", "Fresno"),
+    `San Diego` = c("San Diego", "Imperial"),
+    `Nothern San Joaquin Valley` = c("Calaveras", "Merced", "Alpine", "Amador", "Madera", "Stanislaus", "Tuolumne", "San Joaquin", "Mariposa", "Mono"),
+    `Los Angeles County` = c("Los Angeles"),
+    `Other` = NULL  
+  ))
+uncategorized_counties <- setdiff(ca_childcare$county_name, unique(ca_childcare$county_name[!is.na(ca_childcare$region)]))
+if (length(uncategorized_counties) > 0) {
+  cat("Uncategorized counties:", paste(uncategorized_counties, collapse = ", "), "\n")
+}
+unique_regions <- unique(ca_childcare$region)
+cat("Unique regions:", paste(unique_regions, collapse = ", "), "\n")
 ```
 
 -   factor (example must use functions from **forcats**)
@@ -98,6 +205,30 @@ execute:
 ```{r}
 #| label: wd-4-factor
 
+From Lab 4 Question 3:
+  
+library(forcats)
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |> 
+  mutate(region = fct_collapse(county_name,
+    `San Francisco Bay Area` = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+    `Central Coast` = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+    `Orange County` = c("Orange"),
+    `North Coast` = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+    `Superior California` = c("Sierra", "Butte", "Colusa", "Glenn", "Nevada", "Placer", "Sacramento", "Sutter", "Yolo", "Yuba", "Lassen", "Modoc", "Plumas", "Shasta", "Siskiyou", "Tehama", "El Dorado"),
+    `Inland Empire` = c("Riverside", "San Bernardino"),
+    `Southern San Joaquin Valley` = c("Inyo", "Kern", "Tulare", "Kings", "Fresno"),
+    `San Diego` = c("San Diego", "Imperial"),
+    `Nothern San Joaquin Valley` = c("Calaveras", "Merced", "Alpine", "Amador", "Madera", "Stanislaus", "Tuolumne", "San Joaquin", "Mariposa", "Mono"),
+    `Los Angeles County` = c("Los Angeles"),
+    `Other` = NULL  
+  ))
+uncategorized_counties <- setdiff(ca_childcare$county_name, unique(ca_childcare$county_name[!is.na(ca_childcare$region)]))
+if (length(uncategorized_counties) > 0) {
+  cat("Uncategorized counties:", paste(uncategorized_counties, collapse = ", "), "\n")
+}
+unique_regions <- unique(ca_childcare$region)
+cat("Unique regions:", paste(unique_regions, collapse = ", "), "\n")
 ```
 
 -   date (example must use functions from **lubridate**)
@@ -105,6 +236,7 @@ execute:
 ```{r}
 #| label: wd-4-date
 
+*waiting*
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -113,28 +245,39 @@ execute:
 
 ```{r}
 #| label: wd-5-left
-
+*waiting*
 ```
 
 -   `right_join()`
 
 ```{r}
 #| label: wd-5-right
-
+*waiting*
 ```
 
 -   `inner_join()`
 
 ```{r}
 #| label: wd-5-inner
+From Lab 4 Question 2:
+  
+ca_childcare <- childcare_costs |>
+  inner_join(
+    counties |>
+      filter(state_abbreviation == "CA"), 
+    by = "county_fips_code"
+  )
 
+num_observations <- nrow(ca_childcare)
+
+num_observations
 ```
 
 -   `full_join()`
 
 ```{r}
 #| label: wd-5-full
-
+*waiting*
 ```
 
 **WD-6: I can use filtering joins to filter rows from a dataframe.**
@@ -143,14 +286,14 @@ execute:
 
 ```{r}
 #| label: wd-6-semi
-
+*waiting*
 ```
 
 -   `anti_join()`
 
 ```{r}
 #| label: wd-6-anti
-
+*waiting*
 ```
 
 **WD-7: I can pivot dataframes from long to wide and visa versa**
@@ -159,21 +302,47 @@ execute:
 
 ```{r}
 #| label: wd-7-long
-
+From Lab 4 Question 6:
+  
+plot_data <- ca_childcare |>
+  filter(study_year >= 2008 & study_year <= 2018) |> 
+  select(region, study_year, mc_infant, mc_toddler, mc_preschool) |>
+  pivot_longer(
+    cols = c(mc_infant, mc_toddler, mc_preschool),
+    names_to = "age_group",
+    values_to = "median_price"
+  ) |>
+  mutate(
+    age_group = recode(age_group,
+                       mc_infant = "Infant",
+                       mc_toddler = "Toddler",
+                       mc_preschool = "Preschool"),
+    study_year = as.numeric(study_year),
+    median_price = as.numeric(median_price)
+  ) |>
+  filter(!is.na(study_year) & !is.na(median_price))
 ```
 
 -   `pivot_wider()`
 
 ```{r}
 #| label: wd-7-wide
+From Lab 4 Question 4:
 
+income_summary <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year, values_from = median_income) |>
+  rename("2008" = `2008`, "2018" = `2018`) |>
+  arrange(desc(`2018`))
 ```
 
 ## Reproducibility
 
 **R-1: I can create professional looking, reproducible analyses using RStudio projects, Quarto documents, and the here package.**
 
-I've done this in the following provided assignments:
+I've done this in the following provided assignments: Lab assignments
 
 **R-2: I can write well documented and tidy code.**
 
@@ -181,21 +350,59 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-2-1
-
+Lab 2 Question 6:
+ 
+    ggplot(data = surveys,
+       mapping = aes( x = weight, y = hindfoot_length)) +
+         geom_point(alpha = .5) +
+         facet_wrap(~species)
 ```
 
 -   Example of **dplyr** pipeline
 
 ```{r}
 #| label: r-2-2
-
+From Lab 3 Question 5:
+  
+  teacher_evals_clean <- teacher_evals |>
+  rename(sex = gender) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority,
+         sex) |>
+  mutate(teacher_id = as.character(teacher_id),
+         course_id = as.character(course_id)) |>
+  filter(no_participants >= 10)
 ```
 
 -   Example of function formatting
 
 ```{r}
 #| label: r-2-3
-
+Lab 3 Question 5:
+  
+teacher_evals_clean <- teacher_evals |>
+  rename(sex = gender) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority,
+         sex) |>
+  mutate(teacher_id = as.character(teacher_id),
+         course_id = as.character(course_id)) |>
+  filter(no_participants >= 10)
+  
 ```
 
 **R-3: I can write robust programs that are resistant to changes in inputs.**
@@ -204,14 +411,47 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-3-example
-
+From Lab 4 Question 4:
+  
+income_summary <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year, values_from = median_income) |>
+  rename("2008" = `2008`, "2018" = `2018`) |>
+  arrange(desc(`2018`))
+# https://stackoverflow.com/questions/59395684/writing-a-median-function-in-r
+income_summary
 ```
 
 -   Example of function stops
 
 ```{r}
 #| label: r-3-function-stops
-
+From Lab 4 Question 3:
+  
+library(forcats)
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |> 
+  mutate(region = fct_collapse(county_name,
+    `San Francisco Bay Area` = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+    `Central Coast` = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+    `Orange County` = c("Orange"),
+    `North Coast` = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+    `Superior California` = c("Sierra", "Butte", "Colusa", "Glenn", "Nevada", "Placer", "Sacramento", "Sutter", "Yolo", "Yuba", "Lassen", "Modoc", "Plumas", "Shasta", "Siskiyou", "Tehama", "El Dorado"),
+    `Inland Empire` = c("Riverside", "San Bernardino"),
+    `Southern San Joaquin Valley` = c("Inyo", "Kern", "Tulare", "Kings", "Fresno"),
+    `San Diego` = c("San Diego", "Imperial"),
+    `Nothern San Joaquin Valley` = c("Calaveras", "Merced", "Alpine", "Amador", "Madera", "Stanislaus", "Tuolumne", "San Joaquin", "Mariposa", "Mono"),
+    `Los Angeles County` = c("Los Angeles"),
+    `Other` = NULL  
+  ))
+uncategorized_counties <- setdiff(ca_childcare$county_name, unique(ca_childcare$county_name[!is.na(ca_childcare$region)]))
+if (length(uncategorized_counties) > 0) {
+  cat("Uncategorized counties:", paste(uncategorized_counties, collapse = ", "), "\n")
+}
+unique_regions <- unique(ca_childcare$region)
+cat("Unique regions:", paste(unique_regions, collapse = ", "), "\n")
 ```
 
 ## Data Visualization & Summarization
@@ -222,28 +462,95 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-1-num
-
+From Lab 2 Question 8:
+  
+ggplot(data = surveys,
+       mapping = aes( x = weight, y = hindfoot_length)) +
+         geom_point(alpha = .5) +
+         facet_wrap(~species) +
+  labs(title = "Weight vs. Hindfoot Length by Species",
+       y = "",
+       subtitle = " Hindfoot Length")
 ```
 
 -   at least one numeric variable and one categorical variable
 
 ```{r}
 #| label: dvs-2-num-cat
+From Lab 4 Question 7:
+  
+income_price_data <- ca_childcare |>
+  select(region, mhi_2018	, mc_infant) |>
+  filter(!is.na(mhi_2018) & !is.na(mc_infant))
 
+ggplot(income_price_data, aes(x = mhi_2018, y = mc_infant)) +
+  geom_point(aes(color = region), alpha = 0.6) + 
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  
+  labs(title = "Relationship Between Median Household Income and Infant Childcare Prices",
+       x = "Median Household Income (2018 Dollars)",
+       y = "",
+       color = "Region") +
+  theme_minimal() +
+  theme(legend.position = "right")
 ```
 
 -   at least two categorical variables
 
 ```{r}
 #| label: dvs-2-cat
+From Lab 4 Question 6:
+  
 
+plot_data <- ca_childcare |>
+  filter(study_year >= 2008 & study_year <= 2018) |> 
+  select(region, study_year, mc_infant, mc_toddler, mc_preschool) |>
+  pivot_longer(
+    cols = c(mc_infant, mc_toddler, mc_preschool),
+    names_to = "age_group",
+    values_to = "median_price"
+  ) |>
+  mutate(
+    age_group = recode(age_group,
+                       mc_infant = "Infant",
+                       mc_toddler = "Toddler",
+                       mc_preschool = "Preschool"),
+    study_year = as.numeric(study_year),
+    median_price = as.numeric(median_price)
+  ) |>
+  filter(!is.na(study_year) & !is.na(median_price))
+
+ggplot(plot_data, aes(x = study_year, y = median_price, color = region, group = region)) +
+  geom_point(alpha = 0.7, size = 1.5) +       
+  geom_line(alpha = 0.7, linewidth = .2) +
+  geom_smooth(method = "loess", se = TRUE, linetype = "solid", color = "gray", linewidth = .6) +
+  facet_wrap(~ age_group, scales = "free_y", ncol = 3, labeller = as_labeller(c(
+    "Infant" = "Infant",
+    "Toddler" = "Toddler",
+    "Preschool" = "Preschool"
+  ))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(100, 500), expand = c(0, 0)) + 
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = "",
+    color = "California Region"
+  ) +
+  theme_minimal(base_size = 14) + 
+  theme(
+    legend.position = "right",
+    strip.text = element_text(size = 14, face = "bold"),
+    plot.title = element_text(hjust = 0.5, size = 13),
+    axis.text.x = element_text(angle = 0, hjust = 1),
+    panel.spacing.x = unit(.1, "lines"),
+    axis.text = element_text(size = 5))
 ```
 
 -   dates (timeseries plot)
 
 ```{r}
 #| label: dvs-2-date
-
+*waiting*
 ```
 
 **DVS-2: I use plot modifications to make my visualization clear to the reader.**
@@ -252,6 +559,33 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-1
+From Lab 4 Question 6:
+  
+ggplot(plot_data, aes(x = study_year, y = median_price, color = region, group = region)) +
+  geom_point(alpha = 0.7, size = 1.5) +       
+  geom_line(alpha = 0.7, linewidth = .2) +
+  geom_smooth(method = "loess", se = TRUE, linetype = "solid", color = "gray", linewidth = .6) +
+  facet_wrap(~ age_group, scales = "free_y", ncol = 3, labeller = as_labeller(c(
+    "Infant" = "Infant",
+    "Toddler" = "Toddler",
+    "Preschool" = "Preschool"
+  ))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) + 
+  scale_y_continuous(limits = c(100, 500), expand = c(0, 0)) + 
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = "",
+    color = "California Region"
+  ) +
+  theme_minimal(base_size = 14) + 
+  theme(
+    legend.position = "right",
+    strip.text = element_text(size = 14, face = "bold"),
+    plot.title = element_text(hjust = 0.5, size = 13),
+    axis.text.x = element_text(angle = 0, hjust = 1),
+    panel.spacing.x = unit(.1, "lines"),
+    axis.text = element_text(size = 5))
 
 ```
 
@@ -259,14 +593,36 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-2
-
+From Lab 2 Question 8:
+  
+ggplot(data = surveys,
+       mapping = aes( x = weight, y = hindfoot_length)) +
+         geom_point(alpha = .5) +
+         facet_wrap(~species) +
+  labs(title = "Weight vs. Hindfoot Length by Species",
+       y = "",
+       subtitle = " Hindfoot Length")
 ```
 
 -   I can reorder my legend to align with the colors in my plot
 
 ```{r}
 #| label: dvs-2-3
+From Lab 4 Question 7:
+  
+income_price_data <- ca_childcare |>
+  select(region, mhi_2018	, mc_infant) |>
+  filter(!is.na(mhi_2018) & !is.na(mc_infant))
 
+ggplot(income_price_data, aes(x = mhi_2018, y = mc_infant)) +
+  geom_point(aes(color = region), alpha = 0.6) + 
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  
+  labs(title = "Relationship Between Median Household Income and Infant Childcare Prices",
+       x = "Median Household Income (2018 Dollars)",
+       y = "",
+       color = "Region") +
+  theme_minimal() +
+  theme(legend.position = "right")
 ```
 
 **DVS-3: I show creativity in my visualizations**
@@ -275,20 +631,49 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-3-1
+From Lab 4 Question 7:
+  
+income_price_data <- ca_childcare |>
+  select(region, mhi_2018	, mc_infant) |>
+  filter(!is.na(mhi_2018) & !is.na(mc_infant))
 
+ggplot(income_price_data, aes(x = mhi_2018, y = mc_infant)) +
+  geom_point(aes(color = region), alpha = 0.6) + 
+  geom_smooth(method = "lm", se = FALSE, color = "#FF5733") +  
+  labs(title = "Relationship Between Median Household Income and Infant Childcare Prices",
+       x = "Median Household Income (2018 Dollars)",
+       y = "",
+       color = "Region") +
+  theme_minimal() +
+  theme(legend.position = "right")
 ```
+
+**Revision: I changed the color to a unique hex code to use a non-standard color**
 
 -   I can use annotations
 
 ```{r}
 #| label: dvs-3-2
-
+From Lab 2 Question 8:
+  
+ggplot(data = surveys,
+       mapping = aes( x = weight, y = hindfoot_length)) +
+         geom_point(alpha = .5) +
+         facet_wrap(~species) +
+  labs(title = "Weight (g) vs. Hindfoot Length (mm) by Species",
+       y = "",
+       subtitle = " Hindfoot Length")
 ```
 
 -   I can be creative...
 
 ```{r}
 #| label: dvs-3-3
+From Challenge 2 Question 1:
+
+ggplot(data = surveys, aes(x = weight, y = species)) +
+  geom_density_ridges(scale = 0.5) +
+  theme_ridges()
 
 ```
 
@@ -298,14 +683,33 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-4-summarize
+From Lab 4 Question 5:
+  
+lowest_price_region <- ca_childcare |>
+  filter(study_year == 2018) |>
+  summarize(
+    lowest_price = min(mc_infant, na.rm = TRUE),
+    region = region[which.min(mc_infant)]) |>
+  select(region, lowest_price)
 
+lowest_income_region <- ca_childcare |>
+  filter(study_year == 2018) |>
+  summarize(
+    lowest_income = min(mhi_2018, na.rm = TRUE),
+    region = region[which.min(mhi_2018)]) |>
+  select(region, lowest_income)
+
+lowest_price_region
+lowest_income_region
+
+"The region does match"
 ```
 
 -   Example using `across()`
 
 ```{r}
 #| label: dvs-4-across
-
+*waiting*
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
@@ -314,14 +718,32 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-5-1
+Lab 3 Question 7:
+  
+missing_values_data <- teacher_evals_clean |>
+  filter(if_any(everything(), is.na))
 
+missing_data_clean <- missing_values_data |>
+  group_by(course_id, teacher_id) |>
+  reframe(missing_variables = list(names(is.na), .groups = "drop"))
+#https://dplyr.tidyverse.org/reference/reframe.html
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-5-2
-
+From Lab 4 Question 4:
+  
+income_summary <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year, values_from = median_income) |>
+  rename("2008" = `2008`, "2018" = `2018`) |>
+  arrange(desc(`2018`))
+# https://stackoverflow.com/questions/59395684/writing-a-median-function-in-r
+income_summary
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
@@ -331,12 +753,21 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-6-1
 
+From Lab 4 Question 8:
+  
+reg_mod1 <- lm(mc_infant ~ mhi_2018, data = ca_childcare)
+summary(reg_mod1)
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-6-2
+From Challenge 3 Question 3
+
+chi_square_result <- chisq.test(table(teacher_evals_compare$SET_level,
+                                      teacher_evals_compare$sen_level))
+
 
 ```
 
@@ -346,6 +777,17 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-7-1
+From Lab 4 Question 4:
+  
+income_summary <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year, values_from = median_income) |>
+  rename("2008" = `2008`, "2018" = `2018`) |>
+  arrange(desc(`2018`))
+# https://stackoverflow.com/questions/59395684/writing-a-median-function-in-r
+income_summary
 
 ```
 
@@ -353,7 +795,7 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-7-2
-
+*waiting*
 ```
 
 ## Program Efficiency
@@ -364,6 +806,17 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-1-one-call
+From Lab 4 Question 4:
+  
+income_summary <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarize(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year, values_from = median_income) |>
+  rename("2008" = `2008`, "2018" = `2018`) |>
+  arrange(desc(`2018`))
+# https://stackoverflow.com/questions/59395684/writing-a-median-function-in-r
+income_summary
 
 ```
 
@@ -371,14 +824,14 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-1-across
-
+*waiting*
 ```
 
 -   `map()` functions
 
 ```{r}
 #| label: pe-1-map-1
-
+*waiting*
 ```
 
 **PE-2: I can write functions to reduce repetition in my code.**
@@ -387,14 +840,37 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-2-1
-
+*waiting*
 ```
 
 -   Function that operates on data frames
 
 ```{r}
 #| label: pe-2-2
-
+From Lab 4 Question 3:
+  
+library(forcats)
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |> 
+  mutate(region = fct_collapse(county_name,
+    `San Francisco Bay Area` = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+    `Central Coast` = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+    `Orange County` = c("Orange"),
+    `North Coast` = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+    `Superior California` = c("Sierra", "Butte", "Colusa", "Glenn", "Nevada", "Placer", "Sacramento", "Sutter", "Yolo", "Yuba", "Lassen", "Modoc", "Plumas", "Shasta", "Siskiyou", "Tehama", "El Dorado"),
+    `Inland Empire` = c("Riverside", "San Bernardino"),
+    `Southern San Joaquin Valley` = c("Inyo", "Kern", "Tulare", "Kings", "Fresno"),
+    `San Diego` = c("San Diego", "Imperial"),
+    `Nothern San Joaquin Valley` = c("Calaveras", "Merced", "Alpine", "Amador", "Madera", "Stanislaus", "Tuolumne", "San Joaquin", "Mariposa", "Mono"),
+    `Los Angeles County` = c("Los Angeles"),
+    `Other` = NULL  
+  ))
+uncategorized_counties <- setdiff(ca_childcare$county_name, unique(ca_childcare$county_name[!is.na(ca_childcare$region)]))
+if (length(uncategorized_counties) > 0) {
+  cat("Uncategorized counties:", paste(uncategorized_counties, collapse = ", "), "\n")
+}
+unique_regions <- unique(ca_childcare$region)
+cat("Unique regions:", paste(unique_regions, collapse = ", "), "\n")
 ```
 
 **PE-3:I can use iteration to reduce repetition in my code.**
@@ -403,21 +879,21 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-3-across
-
+*waiting*
 ```
 
 -   `map()` function with **one** input (e.g., `map()`, `map_chr()`, `map_dbl()`, etc.)
 
 ```{r}
 #| label: pe-3-map-1
-
+*waiting*
 ```
 
 -   `map()` function with **more than one** input (e.g., `map_2()` or `pmap()`)
 
 ```{r}
 #| label: pe-3-map-2
-
+*waiting*
 ```
 
 **PE-4: I can use modern tools when carrying out my analysis.**
@@ -426,13 +902,31 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-4-1
-
+From Lab 2 Question 1:
+  
+library(here)
+surveys <- read_csv(here("data", "surveys.csv"))
 ```
 
 -   I can connect a data wrangling pipeline into a `ggplot()`
 
 ```{r}
 #| label: pe-4-2
+From Lab 4 Question 7:
+
+income_price_data <- ca_childcare |>
+  select(region, mhi_2018	, mc_infant) |>
+  filter(!is.na(mhi_2018) & !is.na(mc_infant))
+
+ggplot(income_price_data, aes(x = mhi_2018, y = mc_infant)) +
+  geom_point(aes(color = region), alpha = 0.6) + 
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  
+  labs(title = "Relationship Between Median Household Income and Infant Childcare Prices",
+       x = "Median Household Income (2018 Dollars)",
+       y = "",
+       color = "Region") +
+  theme_minimal() +
+  theme(legend.position = "right")
 
 ```
 
@@ -444,14 +938,14 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dsm-1-1
-
+*waiting*
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dsm-1-2
-
+*waiting*
 ```
 
 **DSSM-2: I can conduct common statistical analyses in R.**
@@ -460,19 +954,31 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dsm-2-1
+From Lab 2 Question 17:
+  
+species_mod <- aov(weight ~ species, data = surveys)
 
+summary(species_mod)
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dsm-2-2
+From Challenge 3 Question 3
+
+chi_square_result <- chisq.test(table(teacher_evals_compare$SET_level,
+                                      teacher_evals_compare$sen_level))
 
 ```
+
+**Revision: Based on the feedback given, I removed the unnecessary object of the contingency table, and directly plugged my data into the chisq.test function.**
 
 ## Revising My Thinking
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
+
+I revised my thinking by being open minded. I am not always going to "get it" the first try and I know that about myself. I take all the feedback I get and go compare it to my original code and what I was thinking at the time of writing it. I try to see why the feedback was given but also why it is better than my own. My own code may get the job done, but I revise my thinking to be as proficient as I can have my code be. I revised my thinking on some of the examples in this portfolio by doing exactly this. I revised one of my graphs to have a unique color for the line of best fit to be more creative and not use a standard color because it made the graph easier to see. Small things like this make my code more conciese and efficient, even though my code before ran and worked.
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -480,8 +986,19 @@ I've done this in the following provided assignments:
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+Similarly to how I revised my thinking, I try to be open minded and be open to new ways to make my code better. I extended my thinking by doing what I listed above in the Revised thinking section, and by also doing my own extended research. Unfortunately with my circumstances in life right now, I miss a few class sessions here and there. I don't let this be an excuse to falling behind, so if I notice things are not making sense, and I have already reviewed the slides, I will try to extend my thinking by reviewing the feedback given on Labs, asking my peers, researching the topics talked about in class and in lecture slides, and find new ways to use the functions we talk about. I extended my thinking in the revisions in my portfolio by implementing more efficient ways to do the same thing as I had. For example fixing the chi square test to run off of just the data file rather than creating a contingency table first.
+
 ## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
+![](images/Screenshot 2024-11-03 at 6.09.23 PM.png){width="359"}
+
+If that image didn't show up, here is what I wrote as peer feedback:
+
+Hi Amir,
+I noticed that you formatted your code really well, making sure to indent when needed and not putting everything on one line. I thought your use of the pipe operator was efficiently used as well. A suggestion I have for you would be to add section headers to make your steps easier to follow. this would also help to organize your document and make it more reader friendly and tidy. Overall good job!
+
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
+
+I grew as a collaborator with the weekly pair activities by really trying hard to stick with the roles given throughout the assignment. I found this to be difficult at first; waiting my turn to give ideas when my job was to type. Something I learned from this and really try to utilize in my day to day life is that communicating should be more about listening and hearing the other person and what they have to say, rather than just waiting for my turn to speak.
