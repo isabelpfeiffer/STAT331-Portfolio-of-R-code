@@ -13,6 +13,8 @@ execute:
 
 [**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be a B.
 
+[**How did you meet that grade’s requirements?:**]{.underline} I have met the requirements by submitting revisions most of the time, always being patient and respectful when collaborating, making an effort to push myself, especially towards the second half of the quarter, and providing kind, constructive feedback on peer reviews.
+
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
 ## Working with Data
