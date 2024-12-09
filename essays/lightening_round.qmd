@@ -16,7 +16,7 @@ editor: visual
 
 3.  What was the easiest part of the class for you? Explain why.
 
-    The easiest concept for me was tables, because for the most part, it was pretty structured/consistant of which functions needed to be used to create tables. Writing code for tables was easier for me once I got the "gist" of how a table is made and what functions get the job done.
+    The easiest concept for me was tables, because for the most part, it was pretty structured/consistant on which functions needed to be used to create tables. Writing code for tables was easier for me once I got the "gist" of how a table is made and what functions get the job done.
 
 4.  What part of the class surprised or interested you the most? Explain why.
 
