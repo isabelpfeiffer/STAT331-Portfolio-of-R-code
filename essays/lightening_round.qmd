@@ -6,16 +6,22 @@ editor: visual
 
 **Answer each of the following questions with *one sentence* including a brief explanation.**
 
-1. Finish the sentence with another student’s name: "If [Name of Student] doesn’t earn an A, then nobody should, because..." Explain your choice and your reasoning.
+1.  Finish the sentence with another student’s name: "If \[Name of Student\] doesn’t earn an A, then nobody should, because..." Explain your choice and your reasoning.
 
+    If Cassandra doesn’t earn an A, then nobody should, because she meets the criteria for an A. When I did her code review, her code was well formatted and efficient. I also sat next to Cassandra for part of the class and each time I had a question, Cassandra took the time to give me a response that not only answered my question but helped me understand why that answer was correct. Even if she did not know the answer right away, she would try to find a resource to help me. A few times Cassandra asked me a question, and when I gave her my response, she was always polite and expressed her gratitude.
 
-2. What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.
+2.  What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.
 
+    The most difficult part of the class for me was the topic of joins. I struggled to understand what type of join gets used in what scenario.
 
-3. What was the easiest part of the class for you? Explain why.
+3.  What was the easiest part of the class for you? Explain why.
 
+    The easiest concept for me was tables, because for the most part, it was pretty structured/consistant of which functions needed to be used to create tables. Writing code for tables was easier for me once I got the "gist" of how a table is made and what functions get the job done.
 
-4. What part of the class surprised or interested you the most? Explain why.
+4.  What part of the class surprised or interested you the most? Explain why.
 
+    I was surprised that enjoyed the Practice Activities so much. At first, I found the structure of one person as developer and one person as coder to be difficult to stick to, but as the class went on, I started to appreciate it. It really helped me practice patience, which benefits me not only with collaborating with my peers in class but also with many things in my personal life.
 
-5. Give one piece of advice to a student just beginning a quarter of STAT 331 that will help them be successful in learning.
+5.  Give one piece of advice to a student just beginning a quarter of STAT 331 that will help them be successful in learning.
+
+    It's ok if you don't understand something as fast as the person next to you. Don't be afraid to utilize the discord and asking your peers for help as well as Dr. T. They are here for you!
